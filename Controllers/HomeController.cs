@@ -1,4 +1,7 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using ShoppingCart.Models;
 using ShoppingCart.Data;
@@ -51,6 +54,20 @@ public class HomeController : Controller
     public IActionResult Privacy()
     {
         return View();
+    }
+
+    public IActionResult Login()
+    {
+        var redirectUrl = Url.Action("Index", "Home");
+        return Challenge(new AuthenticationProperties { RedirectUri = redirectUrl ?? "/" }, OpenIdConnectDefaults.AuthenticationScheme);
+    }
+
+    public async Task<IActionResult> Logout()
+    {
+        var callbackUrl = Url.Action("Index", "Home", values: null, protocol: Request.Scheme);
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = callbackUrl });
+        return RedirectToAction("Index");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

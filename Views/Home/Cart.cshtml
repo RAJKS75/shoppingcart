@@ -1,39 +1,54 @@
 @model IEnumerable<ShoppingCart.Models.CartItem>
 
 @{
-    ViewData["Title"] = "Cart";
+    ViewData["Title"] = "Your Cart";
 }
 
-<div class="container">
-    <h1 class="display-4">Your Cart</h1>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-5">Your Cart</h1>
+            <p class="text-muted">Review your selected items before checkout.</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-action="Index">Continue shopping</a>
+    </div>
+
     @if (!Model.Any())
     {
-        <p>Your cart is empty.</p>
+        <div class="alert alert-info">Your cart is empty.</div>
     }
     else
     {
         <div class="row">
-            <div class="col-md-8">
-                @foreach (var item in Model)
-                {
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">@item.Product.Name</h5>
-                            <p class="card-text">@item.Product.Description</p>
-                            <p class="card-text">Price: $@item.Product.Price</p>
-                            <p class="card-text">Quantity: @item.Quantity</p>
-                            <p class="card-text">Subtotal: $@(item.Product.Price * item.Quantity)</p>
-                            <button class="btn btn-danger" onclick="removeFromCart(@item.ProductId)">Remove</button>
+            <div class="col-lg-8">
+                <div class="list-group">
+                    @foreach (var item in Model)
+                    {
+                        <div class="list-group-item d-flex gap-3 py-3">
+                            <img src="https://via.placeholder.com/100?text=@Uri.EscapeDataString(item.Product.Name)" class="flex-shrink-0 rounded" alt="@item.Product.Name" />
+                            <div class="d-flex flex-column flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="mb-1">@item.Product.Name</h5>
+                                    <span class="text-muted">x@item.Quantity</span>
+                                </div>
+                                <p class="mb-1 text-muted">@item.Product.Description</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold">$@(item.Product.Price * item.Quantity)</span>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(@item.ProductId)">Remove</button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
+                </div>
             </div>
-            <div class="col-md-4">
-                <div class="card">
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title">Total: $@Model.Sum(i => i.Product.Price * i.Quantity)</h5>
+                        <h5 class="card-title">Order Summary</h5>
+                        <p class="card-text">Total items: <strong>@Model.Sum(i => i.Quantity)</strong></p>
+                        <p class="card-text">Subtotal: <strong>$@Model.Sum(i => i.Product.Price * i.Quantity)</strong></p>
                         <form asp-action="Checkout" method="post">
-                            <button type="submit" class="btn btn-success">Checkout</button>
+                            <button type="submit" class="btn btn-success w-100">Proceed to checkout</button>
                         </form>
                     </div>
                 </div>
@@ -42,21 +57,23 @@
     }
 </div>
 
-<script>
-    async function removeFromCart(productId) {
-        try {
-            const response = await fetch('/api/cart/remove', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: productId })
-            });
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Error removing from cart.');
+@section Scripts {
+    <script>
+        async function removeFromCart(productId) {
+            try {
+                const response = await fetch('/api/cart/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: productId })
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error removing from cart.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
             }
-        } catch (error) {
-            console.error('Error:', error);
         }
-    }
-</script>
+    </script>
+}
