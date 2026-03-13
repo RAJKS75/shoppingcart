@@ -1,8 +1,43 @@
-﻿@{
+﻿@model IEnumerable<ShoppingCart.Models.Product>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container">
+    <h1 class="display-4 text-center">Shopping Cart</h1>
+    <div class="row">
+        @foreach (var product in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text">@product.Description</p>
+                        <p class="card-text"><strong>$@product.Price</strong></p>
+                        <button class="btn btn-primary" onclick="addToCart(@product.Id)">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
+
+<script>
+    async function addToCart(productId) {
+        try {
+            const response = await fetch('/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: productId, quantity: 1 })
+            });
+            if (response.ok) {
+                alert('Added to cart!');
+            } else {
+                alert('Error adding to cart.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>

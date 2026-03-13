@@ -1,0 +1,62 @@
+@model IEnumerable<ShoppingCart.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Cart";
+}
+
+<div class="container">
+    <h1 class="display-4">Your Cart</h1>
+    @if (!Model.Any())
+    {
+        <p>Your cart is empty.</p>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-8">
+                @foreach (var item in Model)
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">@item.Product.Name</h5>
+                            <p class="card-text">@item.Product.Description</p>
+                            <p class="card-text">Price: $@item.Product.Price</p>
+                            <p class="card-text">Quantity: @item.Quantity</p>
+                            <p class="card-text">Subtotal: $@(item.Product.Price * item.Quantity)</p>
+                            <button class="btn btn-danger" onclick="removeFromCart(@item.ProductId)">Remove</button>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total: $@Model.Sum(i => i.Product.Price * i.Quantity)</h5>
+                        <form asp-action="Checkout" method="post">
+                            <button type="submit" class="btn btn-success">Checkout</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    async function removeFromCart(productId) {
+        try {
+            const response = await fetch('/api/cart/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: productId })
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error removing from cart.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
