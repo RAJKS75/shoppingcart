@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCart.Data;
+using ShoppingCart.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -40,6 +41,8 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = azure["ClientSecret"];
     options.Authority = $"https://login.microsoftonline.com/{tenant}/v2.0";
     options.ResponseType = "code";
+    options.ResponseMode = "form_post";
+    options.UsePkce = true;
     options.SaveTokens = true;
     options.Scope.Add("offline_access");
     options.Scope.Add("openid");
@@ -49,6 +52,26 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// Ensure database is created
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+
+    // Seed some products if none exist
+    if (!db.Products.Any())
+    {
+        db.Products.AddRange(
+            new Product { Name = "Laptop", Description = "High-performance laptop for work and gaming", Price = 1299.99m },
+            new Product { Name = "Wireless Mouse", Description = "Ergonomic wireless mouse with long battery life", Price = 49.99m },
+            new Product { Name = "Keyboard", Description = "Mechanical keyboard with RGB lighting", Price = 89.99m },
+            new Product { Name = "Monitor", Description = "27-inch 4K UHD monitor", Price = 399.99m },
+            new Product { Name = "Headphones", Description = "Noise-cancelling over-ear headphones", Price = 199.99m }
+        );
+        db.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
