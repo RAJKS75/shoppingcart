@@ -8,7 +8,6 @@ namespace ShoppingCart.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class CartController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -27,6 +26,9 @@ public class CartController : ControllerBase
     [HttpPost("add")]
     public async Task<IActionResult> Add([FromBody] AddCartItemModel model)
     {
+        if (model.Quantity <= 0) return BadRequest("Quantity must be positive");
+        var product = await _db.Products.FindAsync(model.ProductId);
+        if (product == null) return NotFound("Product not found");
         var userId = GetUserId();
         var existing = await _db.CartItems.FirstOrDefaultAsync(ci => ci.UserId == userId && ci.ProductId == model.ProductId);
         if (existing != null)
